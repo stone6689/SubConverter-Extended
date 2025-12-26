@@ -55,6 +55,7 @@ jobs:
           mkdir -p .backup
           cp -r .github .backup/.github
           cp Dockerfile .backup/Dockerfile
+          cp README.md .backup/README.md
           
           # Attempt to rebase
           if git rebase upstream-master; then
@@ -72,9 +73,10 @@ jobs:
                   git am --abort || true
                   
                   # Restore files and abort rebase
-                  rm -rf .github Dockerfile
+                  rm -rf .github Dockerfile README.md
                   mv .backup/.github .github
                   mv .backup/Dockerfile Dockerfile
+                  mv .backup/README.md README.md
                   rm -rf .backup
                   
                   git reset --hard HEAD
@@ -92,9 +94,10 @@ jobs:
             rm -rf .github
             mv .backup/.github .github
             cp .backup/Dockerfile Dockerfile
+            cp .backup/README.md README.md
             
             # Stage and amend the changes
-            git add .github Dockerfile
+            git add .github Dockerfile README.md
             if git diff --cached --quiet; then
               echo "No changes to customized files, pushing directly..."
             else
@@ -113,12 +116,13 @@ jobs:
             git diff --name-only --diff-filter=U || true
             
             # Restore files and abort
-            rm -rf .github Dockerfile
+            rm -rf .github Dockerfile README.md
             mv .backup/.github .github
             mv .backup/Dockerfile Dockerfile
+            mv .backup/README.md README.md
+            rm -rf .backup/README.md README.md
             rm -rf .backup
             
             git rebase --abort || true
             exit 1
           fi
-
