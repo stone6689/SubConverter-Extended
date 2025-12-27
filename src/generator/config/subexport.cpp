@@ -967,7 +967,28 @@ std::string proxyToClash(std::vector<Proxy> &nodes,
   std::string output_content =
       rulesetToClashStr(yamlnode, ruleset_content_array,
                         ext.overwrite_original_rules, ext.clash_new_field_name);
+
+  // 提取 proxy-providers 并从 yamlnode 中移除，以便手动控制输出顺序
+  std::string proxy_providers_str;
+  if (yamlnode["proxy-providers"].IsDefined()) {
+    YAML::Node providers_node = yamlnode["proxy-providers"];
+    yamlnode.remove("proxy-providers");
+    proxy_providers_str = "proxy-providers:\n" + YAML::Dump(providers_node);
+    // 移除第一行的 "---"（如果有）
+    if (proxy_providers_str.find("---") == 0) {
+      proxy_providers_str =
+          proxy_providers_str.substr(proxy_providers_str.find('\n') + 1);
+    }
+  }
+
   std::string yamlnode_str = YAML::Dump(yamlnode);
+
+  // 按照正确顺序组装：yamlnode (proxies + proxy-groups) + proxy-providers +
+  // rules
+  if (!proxy_providers_str.empty()) {
+    yamlnode_str += proxy_providers_str;
+  }
+
   output_content.insert(0, yamlnode_str);
   // rulesetToClash(yamlnode, ruleset_content_array,
   // ext.overwrite_original_rules, ext.clash_new_field_name); std::string
