@@ -733,7 +733,7 @@ std::string subconverter(RESPONSE_CALLBACK_ARGS) {
         ProxyProvider provider;
         provider.name = "provider_" + std::to_string(groupID + 1);
         provider.url = x;
-        provider.interval = interval > 0 ? interval : 3600;
+        provider.interval = 3600; // 固定使用 3600 秒（1小时）
         provider.groupId = groupID;
         provider.path = "./providers/" + provider.name + ".yaml";
 
