@@ -853,7 +853,9 @@ void proxyToClash(std::vector<Proxy> &nodes, YAML::Node &yamlnode,
     if (!x.UsingProvider.empty())
       singlegroup["use"] = x.UsingProvider;
     else {
-      if (filtered_nodelist.empty())
+      // 在 proxy-provider 模式下，不自动添加 DIRECT
+      // 策略组应该只引用 provider 或其他策略组
+      if (filtered_nodelist.empty() && !ext.use_proxy_provider)
         filtered_nodelist.emplace_back("DIRECT");
     }
     if (!filtered_nodelist.empty())
