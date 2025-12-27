@@ -5,7 +5,7 @@ ARG SHA=""
 WORKDIR /
 
 RUN set -xe && \
-    apk add --no-cache --virtual .build-tools git g++ build-base linux-headers cmake python3 && \
+    apk add --no-cache --virtual .build-tools git g++ build-base linux-headers cmake python3 ccache ninja && \
     apk add --no-cache --virtual .build-deps curl-dev rapidjson-dev pcre2-dev yaml-cpp-dev
 
 # quickjspp
@@ -52,8 +52,14 @@ RUN set -xe && \
     python3 -m ensurepip && \
     python3 -m pip install --no-cache-dir gitpython && \
     python3 scripts/update_rules.py -c scripts/rules_config.conf && \
-    cmake -DCMAKE_BUILD_TYPE=Release . && \
-    make -j ${THREADS}
+    # 配置 ccache
+    export PATH="/usr/lib/ccache/bin:$PATH" && \
+    export CCACHE_DIR=/tmp/ccache && \
+    export CCACHE_COMPILERCHECK=content && \
+    # 使用 Ninja 生成器（比 Make 更快）并启用 ccache
+    cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache . && \
+    # 并行编译，使用所有可用核心
+    ninja -j ${THREADS}
 
 FROM alpine:3.16
 RUN apk add --no-cache --virtual subconverter-deps pcre2 libcurl yaml-cpp
