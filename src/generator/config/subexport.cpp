@@ -816,13 +816,77 @@ void proxyToClash(std::vector<Proxy> &nodes, YAML::Node &yamlnode,
     for (const auto &y : x.Proxies)
       groupGenerate(y, nodelist, filtered_nodelist, true, ext);
 
-    // 对于 proxy-provider 模式，添加 use 字段引用 provider
+    // 对于 proxy-provider 模式的处理
     if (ext.use_proxy_provider && !ext.providers.empty()) {
-      YAML::Node use_node(YAML::NodeType::Sequence);
-      for (const ProxyProvider &p : ext.providers) {
-        use_node.push_back(p.name);
+      // 检查策略组是否包含正则表达式（用于匹配节点）
+      // 如果 Proxies 中包含正则模式（不是 [] 开头的引用），则为此策略组创建专用
+      // provider
+      bool has_regex = false;
+      std::string regex_pattern;
+
+      for (const auto &proxy : x.Proxies) {
+        // 如果不是以 [] 开头，则认为是正则表达式
+        if (!proxy.empty() && proxy[0] != '[' && proxy != "DIRECT" &&
+            proxy != "REJECT") {
+          has_regex = true;
+          regex_pattern = proxy;
+          break; // 找到第一个正则就够了
+        }
       }
-      singlegroup["use"] = use_node;
+
+      if (has_regex && !regex_pattern.empty()) {
+        // 为此策略组创建专用 provider（基于原始 provider，添加 filter）
+        std::string provider_name = "provider_" + x.Name;
+        // 替换特殊字符使其成为有效的 provider 名称
+        std::replace(provider_name.begin(), provider_name.end(), ' ', '_');
+        std::replace(provider_name.begin(), provider_name.end(), '️', '_');
+
+        YAML::Node use_node(YAML::NodeType::Sequence);
+        use_node.push_back(provider_name);
+        singlegroup["use"] = use_node;
+
+        // 检查是否已经为这个组创建过 provider（避免重复）
+        bool provider_exists = false;
+        for (const auto &p : ext.providers) {
+          if (p.name == provider_name) {
+            provider_exists = true;
+            break;
+          }
+        }
+
+        if (!provider_exists) {
+          // 创建新的 provider，其 filter 设置为正则表达式
+          ProxyProvider new_provider;
+          new_provider.name = provider_name;
+          // 使用第一个原始 provider 的 URL
+          new_provider.url = ext.providers[0].url;
+          new_provider.interval = ext.providers[0].interval;
+          new_provider.groupId = ext.providers[0].groupId;
+          new_provider.path = "./providers/" + provider_name + ".yaml";
+          new_provider.filter = regex_pattern; // 设置正则过滤
+
+          // 继承全局的 exclude_filter
+          if (!ext.providers[0].exclude_filter.empty()) {
+            new_provider.exclude_filter = ext.providers[0].exclude_filter;
+          }
+
+          // 将新 provider 添加到临时列表（需要在生成 proxy-providers 段时使用）
+          ext.providers.push_back(new_provider);
+        }
+      } else {
+        // 没有正则的策略组，引用所有原始 provider
+        YAML::Node use_node(YAML::NodeType::Sequence);
+        for (const ProxyProvider &p : ext.providers) {
+          // 只添加原始订阅的 provider，不包括为策略组生成的专用 provider
+          if (p.name.find("provider_") == 0 &&
+              p.name.find("provider_", 9) == std::string::npos) {
+            use_node.push_back(p.name);
+          }
+        }
+        if (use_node.size() > 0) {
+          singlegroup["use"] = use_node;
+        }
+      }
     }
 
     if (!x.UsingProvider.empty())
