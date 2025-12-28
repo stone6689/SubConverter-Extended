@@ -233,13 +233,13 @@ int addNodes(std::string link, std::vector<Proxy> &allNodes, int groupID,
             else if (key == "cipher" || key == "method")
               node.EncryptMethod = value;
             else if (key == "uuid")
-              node.UUID = value;
+              node.UserId = value;
             else if (key == "alterId")
               node.AlterId = std::stoi(value);
             else if (key == "udp")
               node.UDP = (value == "true");
             else if (key == "tls")
-              node.TLS = (value == "true");
+              node.TLSStr = value;
             else if (key == "sni" || key == "servername")
               node.ServerName = value;
             else if (key == "network")
