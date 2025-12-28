@@ -6,7 +6,11 @@ set -e
 cd "$(dirname "$0")"
 
 echo "==> Downloading Go dependencies..."
+echo "==> Downloading Go dependencies..."
 go mod download
+
+echo "==> Generating supported schemes header..."
+go run ../scripts/generate_schemes.go ../src/parser/mihomo_schemes.h
 
 echo "==> Building static library..."
 go build \

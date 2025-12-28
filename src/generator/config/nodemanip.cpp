@@ -16,6 +16,9 @@
 #include "utils/logger.h"
 #include "utils/map_extra.h"
 #include "utils/network.h"
+#ifdef USE_MIHOMO_PARSER
+#include "parser/mihomo_schemes.h"
+#endif
 #include "utils/regexp.h"
 #include "utils/urlencode.h"
 
@@ -143,30 +146,38 @@ int addNodes(std::string link, std::vector<Proxy> &allNodes, int groupID,
   else if (startsWith(link, "https://t.me/http") ||
            startsWith(link, "tg://http"))
     linkType = ConfType::HTTP;
-  else if (isLink(link) || startsWith(link, "surge:///install-config") ||
-           startsWith(link, "ss://") || startsWith(link, "ssr://") ||
-           startsWith(link, "vmess://") || startsWith(link, "vless://") ||
-           startsWith(link, "trojan://") || startsWith(link, "hysteria://") ||
-           startsWith(link, "hysteria2://") || startsWith(link, "tuic://") ||
-           startsWith(link, "socks://") || startsWith(link, "socks5://"))
+  else if (isLink(link) || startsWith(link, "surge:///install-config"))
     linkType = ConfType::SUB;
-  else if (startsWith(link, "Netch://"))
-    linkType = ConfType::Netch;
-  else if (fileExist(link))
-    linkType = ConfType::Local;
+#ifdef USE_MIHOMO_PARSER
+  else {
+    for (const auto &scheme : mihomo::SUPPORTED_SCHEMES) {
+      if (startsWith(link, scheme + "://")) {
+        linkType = ConfType::SUB;
+        break;
+      }
+    }
+  }
+#endif
+  else if (startsWith(link, "Netch://")) linkType = ConfType::Netch;
+  else if (fileExist(link)) linkType = ConfType::Local;
 
   switch (linkType) {
   case ConfType::SUB: {
     // 检测链接类型
     bool isHttpUrl =
         startsWith(link, "http://") || startsWith(link, "https://");
-    bool isNodeLink =
-        startsWith(link, "ss://") || startsWith(link, "ssr://") ||
-        startsWith(link, "vmess://") || startsWith(link, "vless://") ||
-        startsWith(link, "trojan://") || startsWith(link, "hysteria://") ||
-        startsWith(link, "hysteria2://") || startsWith(link, "tuic://") ||
-        startsWith(link, "socks://") || startsWith(link, "socks5://") ||
-        (startsWith(link, "http://") && link.find("@") != link.npos);
+    bool isNodeLink = false;
+#ifdef USE_MIHOMO_PARSER
+    for (const auto &scheme : mihomo::SUPPORTED_SCHEMES) {
+      if (startsWith(link, scheme + "://")) {
+        isNodeLink = true;
+        break;
+      }
+    }
+#endif
+    if (!isNodeLink) {
+      isNodeLink = (startsWith(link, "http://") && link.find("@") != link.npos);
+    }
 
     // HTTP(S) 订阅 URL：不下载，不解析，直接跳过（交给 proxy-provider 处理）
     if (isHttpUrl && !isNodeLink) {
