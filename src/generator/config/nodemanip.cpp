@@ -143,7 +143,12 @@ int addNodes(std::string link, std::vector<Proxy> &allNodes, int groupID,
   else if (startsWith(link, "https://t.me/http") ||
            startsWith(link, "tg://http"))
     linkType = ConfType::HTTP;
-  else if (isLink(link) || startsWith(link, "surge:///install-config"))
+  else if (isLink(link) || startsWith(link, "surge:///install-config") ||
+           startsWith(link, "ss://") || startsWith(link, "ssr://") ||
+           startsWith(link, "vmess://") || startsWith(link, "vless://") ||
+           startsWith(link, "trojan://") || startsWith(link, "hysteria://") ||
+           startsWith(link, "hysteria2://") || startsWith(link, "tuic://") ||
+           startsWith(link, "socks://") || startsWith(link, "socks5://"))
     linkType = ConfType::SUB;
   else if (startsWith(link, "Netch://"))
     linkType = ConfType::Netch;
