@@ -6,10 +6,10 @@ WORKDIR /build/bridge
 # Install build dependencies
 RUN apk add --no-cache git
 
-# Copy Go module files
-COPY bridge/go.mod bridge/go.sum ./
+# Copy Go module file
+COPY bridge/go.mod ./
 
-# Download dependencies (this layer will be cached)
+# Download dependencies (this will auto-generate go.sum)
 RUN go mod download
 
 # Copy Go source code
