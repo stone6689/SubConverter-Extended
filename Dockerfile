@@ -3,8 +3,8 @@ FROM golang:1.22-alpine AS go-builder
 
 WORKDIR /build/bridge
 
-# Install build dependencies
-RUN apk add --no-cache git
+# Install build dependencies (gcc required for CGO)
+RUN apk add --no-cache git build-base
 
 # Copy Go module file
 COPY bridge/go.mod ./
