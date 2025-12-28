@@ -177,11 +177,6 @@ int addNodes(std::string link, std::vector<Proxy> &allNodes, int groupID,
     }
 
     // 节点链接：直接用 mihomo 解析（不需要 webGet）
-    writeLog(LOG_TYPE_INFO,
-             "DEBUG: isHttpUrl=" + std::string(isHttpUrl ? "1" : "0") +
-                 ", isNodeLink=" + std::string(isNodeLink ? "1" : "0") +
-                 ", link=" + link.substr(0, 20) + "...");
-
     if (isNodeLink) {
       writeLog(LOG_TYPE_INFO, "Node link detected, parsing with mihomo...");
       strSub = link; // 直接使用链接本身作为解析内容
