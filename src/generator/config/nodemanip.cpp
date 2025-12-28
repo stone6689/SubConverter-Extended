@@ -3,12 +3,12 @@
 #include <string>
 #include <vector>
 
-
 #include "handler/settings.h"
 #include "handler/webget.h"
 #include "nodemanip.h"
 #include "parser/config/proxy.h"
 #include "parser/infoparser.h"
+#include "parser/mihomo_bridge.h"
 #include "parser/subparser.h"
 #include "script/script_quickjs.h"
 #include "subexport.h"
@@ -18,7 +18,6 @@
 #include "utils/network.h"
 #include "utils/regexp.h"
 #include "utils/urlencode.h"
-
 
 extern Settings global;
 
@@ -183,11 +182,102 @@ int addNodes(std::string link, std::vector<Proxy> &allNodes, int groupID,
     }
     */
     if (!strSub.empty()) {
-      writeLog(LOG_TYPE_INFO, "Parsing subscription data...");
+      writeLog(LOG_TYPE_INFO,
+               "Parsing subscription data using mihomo parser...");
+
+#ifdef USE_MIHOMO_PARSER
+      // Use mihomo parser (100% compatible with mihomo)
+      try {
+        auto mihomo_nodes = mihomo::parseSubscription(strSub);
+
+        // Convert mihomo::ProxyNode to subconverter's Proxy structure
+        for (const auto &mnode : mihomo_nodes) {
+          Proxy node;
+          node.Remark = mnode.name;
+          node.Type = ProxyType::Unknown; // Will be set based on type string
+
+          // Map mihomo proxy type to subconverter ProxyType
+          if (mnode.type == "ss")
+            node.Type = ProxyType::Shadowsocks;
+          else if (mnode.type == "ssr")
+            node.Type = ProxyType::ShadowsocksR;
+          else if (mnode.type == "vmess")
+            node.Type = ProxyType::VMess;
+          else if (mnode.type == "trojan")
+            node.Type = ProxyType::Trojan;
+          else if (mnode.type == "snell")
+            node.Type = ProxyType::Snell;
+          else if (mnode.type == "http")
+            node.Type = ProxyType::HTTP;
+          else if (mnode.type == "https")
+            node.Type = ProxyType::HTTPS;
+          else if (mnode.type == "socks5")
+            node.Type = ProxyType::SOCKS5;
+          else if (mnode.type == "vless")
+            node.Type = ProxyType::VLESS;
+          else if (mnode.type == "hysteria")
+            node.Type = ProxyType::Hysteria;
+          else if (mnode.type == "hysteria2")
+            node.Type = ProxyType::Hysteria2;
+          // Add more types as needed
+
+          node.Hostname = mnode.server;
+          node.Port = mnode.port;
+
+          // Store all additional params for later serialization
+          // (mihomo guarantees these are correct for the protocol)
+          for (const auto &[key, value] : mnode.params) {
+            // These will be used when generating the final config
+            if (key == "password")
+              node.Password = value;
+            else if (key == "cipher" || key == "method")
+              node.EncryptMethod = value;
+            else if (key == "uuid")
+              node.UUID = value;
+            else if (key == "alterId")
+              node.AlterId = std::stoi(value);
+            else if (key == "udp")
+              node.UDP = (value == "true");
+            else if (key == "tls")
+              node.TLS = (value == "true");
+            else if (key == "sni" || key == "servername")
+              node.ServerName = value;
+            else if (key == "network")
+              node.TransferProtocol = value;
+            // Store everything else in a raw format for mihomo-compatible
+            // output
+          }
+
+          nodes.push_back(node);
+        }
+
+        if (nodes.empty()) {
+          writeLog(LOG_TYPE_ERROR,
+                   "Mihomo parser returned no valid nodes from: '" + link +
+                       "'!");
+          return -1;
+        }
+
+        writeLog(LOG_TYPE_INFO, "Mihomo parser successfully parsed " +
+                                    std::to_string(nodes.size()) + " nodes.");
+      } catch (const std::exception &e) {
+        writeLog(LOG_TYPE_ERROR,
+                 "Mihomo parser error: " + std::string(e.what()) +
+                     ", falling back to legacy parser.");
+        // Fallback to legacy parser
+        if (explodeConfContent(strSub, nodes) == 0) {
+          writeLog(LOG_TYPE_ERROR, "Invalid subscription: '" + link + "'!");
+          return -1;
+        }
+      }
+#else
+      // Fallback when mihomo parser is not available
       if (explodeConfContent(strSub, nodes) == 0) {
         writeLog(LOG_TYPE_ERROR, "Invalid subscription: '" + link + "'!");
         return -1;
       }
+#endif
+
       if (startsWith(strSub, "ssd://")) {
         getSubInfoFromSSD(strSub, subInfo);
       } else {

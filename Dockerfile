@@ -1,3 +1,32 @@
+# ========== GO BUILD STAGE ==========
+FROM golang:1.21-alpine AS go-builder
+
+WORKDIR /build/bridge
+
+# Install build dependencies
+RUN apk add --no-cache git
+
+# Copy Go module files
+COPY bridge/go.mod bridge/go.sum ./
+
+# Download dependencies (this layer will be cached)
+RUN go mod download
+
+# Copy Go source code
+COPY bridge/converter.go ./
+
+# Build static library
+RUN go build \
+    -buildmode=c-archive \
+    -ldflags="-s -w" \
+    -o libmihomo.a \
+    converter.go
+
+# Verify build output
+RUN ls -lh libmihomo.a libmihomo.h && \
+    file libmihomo.a
+
+# ========== C++ BUILD STAGE ==========
 FROM alpine:3.16 AS builder
 ARG THREADS="4"
 ARG SHA=""
@@ -43,24 +72,33 @@ RUN set -xe && \
     cmake -DCMAKE_CXX_STANDARD=11 . && \
     make install -j ${THREADS}
 
+# Copy Go library from go-builder stage
+COPY --from=go-builder /build/bridge/libmihomo.a /usr/lib/
+COPY --from=go-builder /build/bridge/libmihomo.h /usr/include/
+
 # build subconverter from THIS repository source (provided by build context)
 WORKDIR /src
 COPY . /src
 
 RUN set -xe && \
-    [ -n "${SHA}" ] && sed -i 's/#define BUILD_ID ""/#define BUILD_ID "'"${SHA}"'"/' src/version.h || true && \
+    [ -n "${SHA}" ] && sed -i 's/#define BUILD_ID ""/#define BUILD_ID "'\"${SHA}\"'"/' src/version.h || true && \
     python3 -m ensurepip && \
     python3 -m pip install --no-cache-dir gitpython && \
     python3 scripts/update_rules.py -c scripts/rules_config.conf && \
-    # 配置 ccache
+    # Copy Go library to bridge directory for CMake detection
+    mkdir -p bridge && \
+    cp /usr/lib/libmihomo.a bridge/ && \
+    cp /usr/include/libmihomo.h bridge/ && \
+    # Configure ccache
     export PATH="/usr/lib/ccache/bin:$PATH" && \
     export CCACHE_DIR=/tmp/ccache && \
     export CCACHE_COMPILERCHECK=content && \
-    # 使用 Ninja 生成器（比 Make 更快）并启用 ccache
+    # Use Ninja generator and enable ccache
     cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache . && \
-    # 并行编译，使用所有可用核心
+    # Parallel build
     ninja -j ${THREADS}
 
+# ========== FINAL STAGE ==========
 FROM alpine:3.16
 RUN apk add --no-cache --virtual subconverter-deps pcre2 libcurl yaml-cpp
 

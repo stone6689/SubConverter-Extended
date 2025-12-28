@@ -48,6 +48,7 @@ ADD_EXECUTABLE(${BUILD_TARGET_NAME}
     src/main.cpp
     src/parser/infoparser.cpp
     src/parser/subparser.cpp
+    src/parser/mihomo_bridge.cpp
     src/script/cron.cpp
     src/script/script_quickjs.cpp
 #    src/server/webserver_libevent.cpp
@@ -109,6 +110,21 @@ TARGET_LINK_LIBRARIES(${BUILD_TARGET_NAME} ${QUICKJS_LIBRARIES})
 FIND_PACKAGE(LibCron REQUIRED)
 TARGET_INCLUDE_DIRECTORIES(${BUILD_TARGET_NAME} PRIVATE ${LIBCRON_INCLUDE_DIRS})
 TARGET_LINK_LIBRARIES(${BUILD_TARGET_NAME} ${LIBCRON_LIBRARIES})
+
+# Mihomo Go Parser Bridge
+IF(EXISTS "${CMAKE_SOURCE_DIR}/bridge/libmihomo.a")
+    MESSAGE(STATUS "Found mihomo Go library, enabling native parser support")
+    TARGET_INCLUDE_DIRECTORIES(${BUILD_TARGET_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/bridge")
+    TARGET_LINK_LIBRARIES(${BUILD_TARGET_NAME} "${CMAKE_SOURCE_DIR}/bridge/libmihomo.a")
+    TARGET_COMPILE_DEFINITIONS(${BUILD_TARGET_NAME} PRIVATE -DUSE_MIHOMO_PARSER)
+    
+    # Link pthread (required by Go runtime on Linux)
+    IF(UNIX AND NOT APPLE)
+        TARGET_LINK_LIBRARIES(${BUILD_TARGET_NAME} pthread)
+    ENDIF()
+ELSE()
+    MESSAGE(WARNING "mihomo Go library not found, parser will use fallback mode")
+ENDIF()
 
 IF(WIN32)
     TARGET_LINK_LIBRARIES(${BUILD_TARGET_NAME} wsock32 ws2_32)
