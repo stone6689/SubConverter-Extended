@@ -29,8 +29,7 @@ RUN go build \
     .
 
 # Verify build output
-RUN ls -lh libmihomo.a libmihomo.h && \
-    file libmihomo.a
+RUN ls -lh libmihomo.a libmihomo.h
 
 # ========== C++ BUILD STAGE ==========
 FROM debian:bookworm-slim AS builder
