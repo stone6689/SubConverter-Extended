@@ -63,30 +63,17 @@ subconverter 对新节点格式的支持完全取决于维护者的积极性。�
 
 由于上述问题，subconverter 逐渐被一些开发者和 UP 主视为"过时产物"，开始推崇使用 YAML 文件手动管理配置。
 
-对于 **Custom_OpenClash_Rules** 项目而言，由于公共后端使用了旧版 subconverter，导致许多用户的体验不佳，让没有基本排障能力的小白碰上了自己根本无法处理的问题。
-
-<br>
-
-**💥 也就是在这时，我试图改进现状……**
-
-> 可惜不能如愿，因为我最常使用的 subconverter 分支仓库，我无法提交 PR、无法发起 Issue，甚至连 Star 都不行——可能是被维护者屏蔽了。😞
->
-> **只好自己动手了……**
-
-</details>
-
-### ❤️ 我们的坚持
-
-正如 [Custom_OpenClash_Rules](https://github.com/Aethersailor/Custom_OpenClash_Rules) 项目所坚持的：
+**但也正是基于这一点，正如 [Custom_OpenClash_Rules](https://github.com/Aethersailor/Custom_OpenClash_Rules) 项目所坚持的：**
 
 > [!IMPORTANT]
 > **最适合新手以及最具普适性的操作流程，永远是基于 UI 界面的操作流程。**
->
-> 用户应当拿着订阅链接，点几下鼠标就能根据自己的实际情况配置出最佳效果，并自动享受完善的分流规则更新，而不是繁琐的"上传文件"、"手动修改参数"，甚至还得到处问问题。
+
+用户应当拿着订阅链接，点几下鼠标就能根据自己的实际情况配置出最佳效果，并自动享受完善的分流规则更新，而不是繁琐的"上传文件"、"手动修改参数"，甚至还得到处问问题。
+</details>
 
 ### 🎯 我们的解决方案
 
-**SubConverter-Extended 因此诞生**。致力于让转换工具更匹配现代 Clash 内核的使用场景，**服务于所有保留“订阅转换”接口的 Clash 客户端**。
+**既然无法贡献，那就自己动手吧。** SubConverter-Extended 因此诞生，致力于让转换工具更匹配现代 Clash 内核的使用场景，**服务于所有保留“订阅转换”接口的 Clash 客户端**。
 
 ---
 
@@ -134,7 +121,6 @@ proxy-providers:
 #### 2. Mihomo 内核模块集成 🧩
 
 直接使用 Mihomo Go 库解析节点链接，确保：
-
 * ✅ 支持 Mihomo 的所有协议（包括 `hysteria2`, `tuic`, `anytls` 等）
 * ✅ 参数完全兼容，无需手动适配
 * ✅ 新协议零延迟支持（编译时跟随 Mihomo 更新）
@@ -142,7 +128,8 @@ proxy-providers:
 #### 3. 兼容性保证 🤝
 
 * ✅ **无缝切换**：完全兼容旧版 subconverter 的 API 接口，确保客户端用户零学习成本，无缝切换。
-* ✅ **模板兼容**：继续沿用旧版的订阅转换外部模板，无需修改任何内容，由后端内置逻辑确保 `proxy-provider` 模式在分流规则中正确生成。
+* ✅ **模板兼容**：继续沿用旧版的订阅转换外部模板，无需修正任何内容，由后端内置逻辑确保 `proxy-provider` 模式在分流规则中正确生成。
+* ✅ **无忧更新**：编译时自动遍历 [Mihomo 内核仓库](https://github.com/MetaCubeX/mihomo)，提取并写入当前最新支持的协议格式，确保永远支持最新协议。
 
 #### 4. 新手友好 👶
 
@@ -167,7 +154,9 @@ proxy-providers:
 
 如果你拥有自己的服务器，推荐使用 Docker 进行部署。
 
-> [!NOTE]
+> [!WARNING]
+> **代码尚不完善，推荐优先使用公共后端。**
+>
 > *由于开发者业余时间有限，以下部署指南部分内容由 AI 生成，仅供参考。*
 
 #### 1. 一键启动
@@ -230,7 +219,7 @@ curl "http://localhost:25500/sub?target=clash&url=YOUR_SUB&config=https://raw.gi
 | `target` | 目标格式 | `clash`, `surge`, `quanx` |
 | `url` | 订阅链接或节点链接（`\|` 分隔） | `https://sub.com\|vless://...` |
 | `config` | 外部配置文件 | `https://config-url` |
-| `include` | 包含节点（正则） | `香港\|台湾` |
+| `include` | 包含节点（正则） **(暂不支持)** | `香港\|台湾` |
 | `exclude` | 排除节点（正则） | `过期\|剩余` |
 | `emoji` | 添加 Emoji | `true`/`false` |
 
@@ -242,17 +231,9 @@ curl "http://localhost:25500/sub?target=clash&url=YOUR_SUB&config=https://raw.gi
 
 支持三种格式：`pref.toml`（推荐）、`pref.yml`、`pref.ini`。
 
+关键配置项：
+
 ```toml
-[common]
-api_mode = true                    # API 模式（强制开启）
-default_url = []                   # 默认订阅（已禁用，必须传 url 参数）
-enable_insert = true               # 启用节点插入
-
-[node_pref]
-udp_flag = false                   # UDP 支持
-tfo_flag = false                   # TCP Fast Open
-skip_cert_verify_flag = false      # 跳过证书验证
-
 [managed_config]
 managed_config_prefix = "http://localhost:25500"  # 托管配置前缀
 ```
