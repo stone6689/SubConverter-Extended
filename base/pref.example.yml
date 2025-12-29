@@ -1,6 +1,5 @@
 common:
-  api_mode: true
-  api_access_token: password
+  # API mode is hardcoded to true - token auth disabled
   default_url: []
   enable_insert: true
   insert_url: []

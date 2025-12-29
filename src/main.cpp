@@ -146,14 +146,11 @@ int main(int argc, char *argv[]) {
   if (!global.updateRulesetOnRequest)
     refreshRulesets(global.customRulesets, global.rulesetsContent);
 
-  std::string env_api_mode = getEnv("API_MODE"),
-              env_managed_prefix = getEnv("MANAGED_PREFIX"),
-              env_token = getEnv("API_TOKEN");
-  global.APIMode = tribool().parse(toLower(env_api_mode)).get(global.APIMode);
+  // API_MODE and API_TOKEN environment variables removed
+  // APIMode is hardcoded to true for security
+  std::string env_managed_prefix = getEnv("MANAGED_PREFIX");
   if (!env_managed_prefix.empty())
     global.managedConfigPrefix = env_managed_prefix;
-  if (!env_token.empty())
-    global.accessToken = env_token;
 
   if (global.generatorMode)
     return simpleGenerator();

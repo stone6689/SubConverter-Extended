@@ -401,10 +401,10 @@ std::string subconverter(RESPONSE_CALLBACK_ARGS) {
   int interval = !argUpdateInterval.empty()
                      ? to_int(argUpdateInterval, global.updateInterval)
                      : global.updateInterval;
-  bool authorized = !global.APIMode ||
-                    getUrlArg(argument, "token") == global.accessToken,
-       strict = !argUpdateStrict.empty() ? argUpdateStrict == "true"
-                                         : global.updateStrict;
+  // Token authentication is permanently disabled for security
+  bool authorized = false, strict = !argUpdateStrict.empty()
+                                        ? argUpdateStrict == "true"
+                                        : global.updateStrict;
 
   if (std::find(gRegexBlacklist.cbegin(), gRegexBlacklist.cend(),
                 argIncludeRemark) != gRegexBlacklist.cend() ||
@@ -422,8 +422,9 @@ std::string subconverter(RESPONSE_CALLBACK_ARGS) {
 
   /// validate urls
   argEnableInsert.define(global.enableInsert);
-  if (argUrl.empty() && (!global.APIMode || authorized))
-    argUrl = global.defaultUrls;
+  // default_url is permanently disabled - users must provide url parameter
+  // if (argUrl.empty() && (!global.APIMode || authorized))
+  //     argUrl = global.defaultUrls;
   if ((argUrl.empty() && !(!global.insertUrls.empty() && argEnableInsert)) ||
       argTarget.empty()) {
     *status_code = 400;
