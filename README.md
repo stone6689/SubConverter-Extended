@@ -63,20 +63,30 @@ subconverter 对新节点格式的支持完全取决于维护者的积极性。�
 
 由于上述问题，subconverter 逐渐被一些开发者和 UP 主视为"过时产物"，开始推崇使用 YAML 文件手动管理配置。
 
-**但也正是基于这一点，正如 [Custom_OpenClash_Rules](https://github.com/Aethersailor/Custom_OpenClash_Rules) 项目维护者的亲身经历：**
+对于 **Custom_OpenClash_Rules** 项目而言，由于公共后端使用了旧版 subconverter，导致许多用户的体验不佳，让没有基本排障能力的小白碰上了自己根本无法处理的问题。
 
-> [!CAUTION]
-> 对于 **Custom_OpenClash_Rules** 项目而言，由于公共后端使用了旧版 subconverter，导致许多用户的体验不佳，让没有基本排障能力的小白碰上了自己根本无法处理的问题。
+<br>
+
+**💥 也就是在这时，我试图改进现状……**
+
+> 可惜不能如愿，因为我最常使用的 subconverter 分支仓库，我无法提交 PR、无法发起 Issue，甚至连 Star 都不行——可能是被维护者屏蔽了。😞
+>
+> **只好自己动手了……**
+
+</details>
+
+### ❤️ 我们的坚持
+
+正如 [Custom_OpenClash_Rules](https://github.com/Aethersailor/Custom_OpenClash_Rules) 项目所坚持的：
 
 > [!IMPORTANT]
 > **最适合新手以及最具普适性的操作流程，永远是基于 UI 界面的操作流程。**
-
-用户应当拿着订阅链接，点几下鼠标就能根据自己的实际情况配置出最佳效果，并自动享受完善的分流规则更新，而不是繁琐的"上传文件"、"手动修改参数"，甚至还得到处问问题。
-</details>
+>
+> 用户应当拿着订阅链接，点几下鼠标就能根据自己的实际情况配置出最佳效果，并自动享受完善的分流规则更新，而不是繁琐的"上传文件"、"手动修改参数"，甚至还得到处问问题。
 
 ### 🎯 我们的解决方案
 
-**既然无法贡献，那就自己动手吧。** SubConverter-Extended 因此诞生，致力于让转换工具更匹配现代 Clash 内核的使用场景，**服务于所有保留“订阅转换”接口的 Clash 客户端**。
+**SubConverter-Extended 因此诞生**。致力于让转换工具更匹配现代 Clash 内核的使用场景，**服务于所有保留“订阅转换”接口的 Clash 客户端**。
 
 ---
 
@@ -124,6 +134,7 @@ proxy-providers:
 #### 2. Mihomo 内核模块集成 🧩
 
 直接使用 Mihomo Go 库解析节点链接，确保：
+
 * ✅ 支持 Mihomo 的所有协议（包括 `hysteria2`, `tuic`, `anytls` 等）
 * ✅ 参数完全兼容，无需手动适配
 * ✅ 新协议零延迟支持（编译时跟随 Mihomo 更新）
