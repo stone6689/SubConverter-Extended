@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - dev
     paths:
       - '.github/workflows/update-mihomo.yml'
   schedule:
@@ -20,7 +21,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: master # Update the master branch
+          # Use the branch that triggered the workflow
 
       - name: Setup Go
         uses: actions/setup-go@v6
@@ -56,4 +57,4 @@ jobs:
           
           git add bridge/go.mod bridge/go.sum
           git commit -m "chore: auto-update mihomo core to $VERSION"
-          git push origin master
+          git push origin ${{ github.ref_name }}
