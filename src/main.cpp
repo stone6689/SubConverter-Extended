@@ -256,9 +256,18 @@ int main(int argc, char *argv[]) {
         h1 {
             color: var(--text-primary);
             font-size: 2.5em;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             font-weight: 700;
             text-shadow: var(--text-shadow);
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            font-weight: 400;
+            font-style: italic;
+            opacity: 0.9;
         }
         
         .divider {
@@ -344,6 +353,7 @@ int main(int argc, char *argv[]) {
 <body>
     <div class="container">
         <h1>SubConverter-Extended</h1>
+        <p class="subtitle">A Modern Evolution of subconverter</p>
         <div class="divider"></div>
         
         <p class="description">
@@ -376,7 +386,7 @@ int main(int argc, char *argv[]) {
         <div class="divider"></div>
         
         <p class="description">
-            Originated from: 
+            Forked and enhanced from: 
             <a href="https://github.com/asdlokj1qpi233/subconverter" target="_blank">subconverter v0.9.9</a>
         </p>
         
