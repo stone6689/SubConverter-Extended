@@ -15,40 +15,53 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set +e  # Don't exit on error
+          
           echo "🧹 Starting cleanup of failed, cancelled and skipped workflow runs..."
           echo ""
           
-          # Get all workflow runs
           OWNER="${{ github.repository_owner }}"
           REPO="${{ github.event.repository.name }}"
           
           deleted=0
+          failed=0
           page=1
           
-          while true; do
+          while [ $page -le 50 ]; do
             echo "📄 Fetching page $page..."
             
-            # Get workflow runs (all statuses)
+            # Get workflow runs
             response=$(gh api \
               -H "Accept: application/vnd.github+json" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
               "/repos/$OWNER/$REPO/actions/runs?per_page=100&page=$page" 2>&1)
             
-            if [ $? -ne 0 ]; then
-              echo "❌ API call failed: $response"
+            api_status=$?
+            
+            if [ $api_status -ne 0 ]; then
+              echo "⚠️  API call failed on page $page: $response"
+              echo "   Continuing to next page..."
+              ((page++))
+              continue
+            fi
+            
+            # Check if we got any runs
+            run_count=$(echo "$response" | jq -r '.workflow_runs | length' 2>/dev/null)
+            
+            if [ -z "$run_count" ] || [ "$run_count" = "0" ]; then
+              echo "✅ No more runs found, stopping."
               break
             fi
             
-            # Extract run IDs and conclusions
-            runs=$(echo "$response" | jq -r '.workflow_runs[] | select(.conclusion == "failure" or .conclusion == "cancelled" or .conclusion == "skipped") | "\(.id)|\(.name)|\(.conclusion)"')
+            echo "   Found $run_count runs on this page"
             
-            if [ -z "$runs" ]; then
-              echo "✅ No more runs to delete on page $page"
-              break
-            fi
-            
-            # Delete each run
+            # Extract and process runs
+            echo "$response" | jq -r '.workflow_runs[] | select(.conclusion == "failure" or .conclusion == "cancelled" or .conclusion == "skipped") | "\(.id)|\(.name)|\(.conclusion)"' 2>/dev/null | \
             while IFS='|' read -r run_id name conclusion; do
+              if [ -z "$run_id" ]; then
+                continue
+              fi
+              
               echo "🗑️  Deleting [$conclusion] $name (ID: $run_id)..."
               
               delete_response=$(gh api \
@@ -57,28 +70,32 @@ jobs:
                 -H "X-GitHub-Api-Version: 2022-11-28" \
                 "/repos/$OWNER/$REPO/actions/runs/$run_id" 2>&1)
               
-              if [ $? -eq 0 ]; then
-                echo "   ✅ Deleted successfully"
+              delete_status=$?
+              
+              if [ $delete_status -eq 0 ]; then
+                echo "   ✅ Deleted"
                 ((deleted++))
               else
-                echo "   ❌ Failed: $delete_response"
+                echo "   ⚠️  Failed: $delete_response"
+                ((failed++))
               fi
               
               # Rate limiting
-              sleep 0.1
-            done <<< "$runs"
+              sleep 0.2
+            done
             
             ((page++))
-            
-            # Safety limit
-            if [ $page -gt 50 ]; then
-              echo "⚠️  Reached page limit (50), stopping..."
-              break
-            fi
+            sleep 0.5
           done
           
           echo ""
           echo "═══════════════════════════════════"
           echo "✅ Cleanup completed!"
-          echo "📊 Deleted $deleted workflow runs"
+          echo "📊 Successfully deleted: $deleted"
+          if [ $failed -gt 0 ]; then
+            echo "⚠️  Failed to delete: $failed"
+          fi
           echo "═══════════════════════════════════"
+          
+          # Always exit successfully
+          exit 0
