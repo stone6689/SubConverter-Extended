@@ -266,6 +266,7 @@ managed_config_prefix = "http://localhost:25500"  # 托管配置前缀
 
 本项目基于 [GPL-3.0](LICENSE) 协议开源。
 
+> [!TIP]
 > 内置的 Mihomo 解析器模块遵循 [MIT](https://github.com/MetaCubeX/mihomo/blob/Meta/LICENSE) 协议。
 
 ---
