@@ -17,6 +17,9 @@ RUN go mod init github.com/aethersailor/subconverter-extended/bridge
 # Get latest Mihomo and resolve all dependencies
 RUN go get github.com/metacubex/mihomo@Meta
 
+# Upgrade all dependencies to latest versions (security fix)
+RUN go get -u all
+
 # Tidy dependencies (auto-resolves transitive deps)
 RUN go mod tidy
 
