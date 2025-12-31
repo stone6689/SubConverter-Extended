@@ -93,9 +93,8 @@ jobs:
         make -j$(nproc)
         # Manual install (make install fails due to missing target)
         sudo install -d /usr/local/include/libcron
-        sudo install -d /usr/local/include/date
-        sudo cp -r libcron/include/libcron/* /usr/local/include/libcron/
-        sudo cp -r libcron/externals/date/include/date/* /usr/local/include/date/
+        sudo cp -r include/libcron/* /usr/local/include/libcron/
+        # Date library is provided by apt package libhowardhinnant-date-dev
         sudo install -m644 out/Release/liblibcron.a /usr/local/lib/
 
     # [SETUP] Restore Artifacts if Cache Hit
@@ -116,9 +115,7 @@ jobs:
         # Restore LibCron
         cd libcron
         sudo install -d /usr/local/include/libcron
-        sudo install -d /usr/local/include/date
-        sudo cp -r libcron/include/libcron/* /usr/local/include/libcron/
-        sudo cp -r libcron/externals/date/include/date/* /usr/local/include/date/
+        sudo cp -r include/libcron/* /usr/local/include/libcron/
         sudo install -m644 out/Release/liblibcron.a /usr/local/lib/
         cd ..
 
