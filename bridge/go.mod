@@ -1,6 +1,6 @@
 module github.com/aethersailor/subconverter-extended/bridge
 
-go 1.24.0
+go 1.25.5
 
 require github.com/metacubex/mihomo v1.19.19-0.20251223142019-8deaed8287d2
 
