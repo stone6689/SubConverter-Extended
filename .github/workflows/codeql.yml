@@ -61,6 +61,8 @@ jobs:
             build-essential \
             cmake \
             libpcre2-dev \
+            rapidjson-dev \
+            libtoml11-dev \
             libyaml-cpp-dev \
             libcurl4-openssl-dev \
             libhowardhinnant-date-dev
