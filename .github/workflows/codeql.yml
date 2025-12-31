@@ -1,6 +1,7 @@
 name: "CodeQL"
 
 on:
+  workflow_dispatch:
   push:
     branches: [ "dev" ]
   pull_request:
@@ -93,7 +94,14 @@ jobs:
         make -j$(nproc)
         # Manual install (make install fails due to missing target)
         sudo install -d /usr/local/include/libcron
-        sudo cp -r include/libcron/* /usr/local/include/libcron/
+        if [ -d include/libcron ]; then
+          sudo cp -r include/libcron/* /usr/local/include/libcron/
+        elif [ -d include ]; then
+          sudo cp -r include/* /usr/local/include/libcron/
+        else
+          echo "libcron headers not found under include/"
+          exit 1
+        fi
         # Date library is provided by apt package libhowardhinnant-date-dev
         sudo install -m644 out/Release/liblibcron.a /usr/local/lib/
 
@@ -115,7 +123,14 @@ jobs:
         # Restore LibCron
         cd libcron
         sudo install -d /usr/local/include/libcron
-        sudo cp -r include/libcron/* /usr/local/include/libcron/
+        if [ -d include/libcron ]; then
+          sudo cp -r include/libcron/* /usr/local/include/libcron/
+        elif [ -d include ]; then
+          sudo cp -r include/* /usr/local/include/libcron/
+        else
+          echo "libcron headers not found under include/"
+          exit 1
+        fi
         sudo install -m644 out/Release/liblibcron.a /usr/local/lib/
         cd ..
 
