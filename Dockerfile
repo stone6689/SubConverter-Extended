@@ -108,6 +108,8 @@ RUN set -xe && \
     curl -fsSL https://raw.githubusercontent.com/pantor/inja/master/single_include/inja/inja.hpp -o include/inja.hpp && \
     echo "Downloading latest jpcre2..." && \
     curl -fsSL https://raw.githubusercontent.com/jpcre2/jpcre2/master/src/jpcre2.hpp -o include/jpcre2.hpp && \
+    echo "Copying latest quickjspp from compiled source..." && \
+    cp /usr/include/quickjspp.hpp include/quickjspp.hpp && \
     echo "All header libraries updated to latest versions"
 
 RUN set -xe && \
