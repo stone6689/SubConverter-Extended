@@ -94,16 +94,14 @@ jobs:
         make -j$(nproc)
         # Manual install (make install fails due to missing target)
         sudo install -d /usr/local/include/libcron
-        if [ -d libcron/include/libcron ]; then
-          sudo cp -r libcron/include/libcron/* /usr/local/include/libcron/
-        elif [ -d include/libcron ]; then
-          sudo cp -r include/libcron/* /usr/local/include/libcron/
-        elif [ -d include ]; then
-          sudo cp -r include/* /usr/local/include/libcron/
-        else
-          echo "libcron headers not found under include/"
+        cron_header="$(find . -type f -name Cron.h -print -quit)"
+        if [ -z "$cron_header" ]; then
+          echo "libcron headers not found (Cron.h missing)"
+          find . -maxdepth 4 -type d -name include -print
           exit 1
         fi
+        cron_include_dir="$(dirname "$cron_header")"
+        sudo cp -r "$cron_include_dir"/* /usr/local/include/libcron/
         # Date library is provided by apt package libhowardhinnant-date-dev
         sudo install -m644 out/Release/liblibcron.a /usr/local/lib/
 
@@ -125,16 +123,14 @@ jobs:
         # Restore LibCron
         cd libcron
         sudo install -d /usr/local/include/libcron
-        if [ -d libcron/include/libcron ]; then
-          sudo cp -r libcron/include/libcron/* /usr/local/include/libcron/
-        elif [ -d include/libcron ]; then
-          sudo cp -r include/libcron/* /usr/local/include/libcron/
-        elif [ -d include ]; then
-          sudo cp -r include/* /usr/local/include/libcron/
-        else
-          echo "libcron headers not found under include/"
+        cron_header="$(find . -type f -name Cron.h -print -quit)"
+        if [ -z "$cron_header" ]; then
+          echo "libcron headers not found (Cron.h missing)"
+          find . -maxdepth 4 -type d -name include -print
           exit 1
         fi
+        cron_include_dir="$(dirname "$cron_header")"
+        sudo cp -r "$cron_include_dir"/* /usr/local/include/libcron/
         sudo install -m644 out/Release/liblibcron.a /usr/local/lib/
         cd ..
 
