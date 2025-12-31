@@ -106,7 +106,11 @@ RUN set -xe && \
     wget -q https://raw.githubusercontent.com/yhirose/cpp-httplib/master/httplib.h -O include/httplib.h && \
     echo "Downloading latest nlohmann/json..." && \
     wget -q https://github.com/nlohmann/json/releases/latest/download/json.hpp -O include/nlohmann/json.hpp && \
-    echo "Header libraries updated to latest versions"
+    echo "Downloading latest inja..." && \
+    wget -q https://raw.githubusercontent.com/pantor/inja/master/single_include/inja/inja.hpp -O include/inja.hpp && \
+    echo "Downloading latest jpcre2..." && \
+    wget -q https://raw.githubusercontent.com/jpcre2/jpcre2/master/src/jpcre2.hpp -O include/jpcre2.hpp && \
+    echo "All header libraries updated to latest versions"
 
 RUN set -xe && \
     [ -n "${SHA}" ] && sed -i "s/#define BUILD_ID \"\"/#define BUILD_ID \"${SHA}\"/" src/version.h || true && \
