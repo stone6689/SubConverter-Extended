@@ -86,7 +86,10 @@ jobs:
         git clone https://github.com/PerMalmberg/libcron
         cd libcron
         git checkout v1.3.0  # Pin version for stability
-        cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DBUILD_EXAMPLES=OFF .
+        # Force disable tests by modifying CMakeLists.txt (no option provided upstream)
+        sed -i '/add_subdirectory(test)/d' CMakeLists.txt
+        sed -i '/add_dependencies(cron_test libcron)/d' CMakeLists.txt
+        cmake -DCMAKE_BUILD_TYPE=Release .
         make -j$(nproc)
         sudo make install
 
