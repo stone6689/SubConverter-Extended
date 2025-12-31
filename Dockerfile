@@ -43,6 +43,7 @@ RUN ls -lh libmihomo.a libmihomo.h
 FROM debian:bookworm-slim AS builder
 ARG THREADS="4"
 ARG SHA=""
+ARG VERSION="dev"
 
 WORKDIR /
 
@@ -113,7 +114,8 @@ RUN set -xe && \
     echo "All header libraries updated to latest versions"
 
 RUN set -xe && \
-    [ -n "${SHA}" ] && sed -i "s/#define BUILD_ID \"\"/#define BUILD_ID \"${SHA}\"/" src/version.h || true && \
+    [ -n "${SHA}" ] && sed -i "s/#define BUILD_ID \"\"/#define BUILD_ID \"${SHA}\"/ " src/version.h || true && \
+    [ -n "${VERSION}" ] && sed -i "s/#define VERSION \"dev\"/#define VERSION \"${VERSION}\"/" src/version.h || true && \
     # Copy Go library to bridge directory for CMake detection
     mkdir -p bridge && \
     cp /usr/lib/libmihomo.a bridge/ && \

@@ -3,17 +3,19 @@ name: Build and push Docker image (Docker Hub)
 on:
   push:
     branches:
-      - master
-      - dev
+      - dev  # Only dev branch triggers on push
     paths-ignore:
       - 'README.md'
       - 'README-*.md'
       - '.travis.yml'
+  push:
+    tags:
+      - 'v*.*.*'  # Tag push triggers master build
   pull_request:
     branches:
       - master
       - dev
-  workflow_dispatch: {}
+  workflow_dispatch: {}  # Manual trigger
 
 permissions:
   contents: write  # Changed from 'read' to enable auto-commit
@@ -44,6 +46,28 @@ jobs:
         id: vars
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            # Tag triggered: use tag as version
+            VERSION="${GITHUB_REF#refs/tags/}"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "is_release=true" >> $GITHUB_OUTPUT
+            echo "Detected version from tag: $VERSION"
+          elif [[ "${{ github.ref }}" == refs/heads/master ]] && [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            # Master manual trigger: use latest tag
+            VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "is_release=true" >> $GITHUB_OUTPUT
+            echo "Detected version from latest tag: $VERSION"
+          else
+            # Dev branch: use "dev"
+            echo "version=dev" >> $GITHUB_OUTPUT
+            echo "is_release=false" >> $GITHUB_OUTPUT
+            echo "Using dev version"
+          fi
+
       - name: Log in to Docker Hub
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
@@ -57,7 +81,8 @@ jobs:
         with:
           images: aethersailor/subconverter-extended
           tags: |
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
+            type=raw,value=latest,enable=${{ steps.version.outputs.is_release == 'true' }}
+            type=raw,value=${{ steps.version.outputs.version }},enable=${{ steps.version.outputs.is_release == 'true' }}
             type=raw,value=dev,enable=${{ github.ref == 'refs/heads/dev' }}
 
       # Build temporary image to extract generated files
@@ -138,11 +163,12 @@ jobs:
           context: .
           file: ./Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
-          platforms: ${{ github.ref == 'refs/heads/master' && 'linux/amd64,linux/arm64' || 'linux/amd64' }}
+          platforms: ${{ steps.version.outputs.is_release == 'true' && 'linux/amd64,linux/arm64' || 'linux/amd64' }}
           tags: ${{ steps.meta.outputs.tags }}
           build-args: |
             THREADS=16
             SHA=${{ steps.vars.outputs.sha_short }}
+            VERSION=${{ steps.version.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
