@@ -61,23 +61,34 @@ jobs:
             type=raw,value=dev,enable=${{ github.ref == 'refs/heads/dev' }}
 
       # Build temporary image to extract generated files
-      - name: Build temporary image for file extraction
+      - name: Build temporary image for file extraction (go-builder)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          load: true  # Load image to local Docker
+          tags: subconverter-temp:go-builder
+          target: go-builder  # Only build go-builder stage
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build temporary image for file extraction (builder)
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           load: true  # Load image to local Docker
           tags: subconverter-temp:builder
-          target: go-builder  # Only build go-builder stage
+          target: builder  # Build to builder stage (includes header updates)
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Extract generated files from builder
+      - name: Extract generated files from go-builder
         run: |
-          # Create temporary container from builder stage
-          CONTAINER_ID=$(docker create subconverter-temp:builder)
+          # Create temporary container from go-builder stage
+          CONTAINER_ID=$(docker create subconverter-temp:go-builder)
           
-          # Extract files
+          # Extract Go-generated files
           docker cp $CONTAINER_ID:/build/bridge/go.mod bridge/go.mod
           docker cp $CONTAINER_ID:/build/bridge/go.sum bridge/go.sum
           docker cp $CONTAINER_ID:/build/bridge/mihomo_schemes.h src/parser/mihomo_schemes.h
@@ -86,10 +97,25 @@ jobs:
           # Cleanup
           docker rm $CONTAINER_ID
 
+      - name: Extract updated header files from builder
+        run: |
+          # Create temporary container from builder stage
+          CONTAINER_ID=$(docker create subconverter-temp:builder)
+          
+          # Extract updated header-only libraries
+          docker cp $CONTAINER_ID:/src/include/httplib.h include/httplib.h
+          docker cp $CONTAINER_ID:/src/include/nlohmann/json.hpp include/nlohmann/json.hpp
+          docker cp $CONTAINER_ID:/src/include/inja.hpp include/inja.hpp
+          docker cp $CONTAINER_ID:/src/include/jpcre2.hpp include/jpcre2.hpp
+          docker cp $CONTAINER_ID:/src/include/quickjspp.hpp include/quickjspp.hpp
+          
+          # Cleanup
+          docker rm $CONTAINER_ID
+
       - name: Check for file changes
         id: check_changes
         run: |
-          git diff --quiet bridge/go.mod bridge/go.sum src/parser/mihomo_schemes.h src/parser/param_compat.h || echo "changed=true" >> $GITHUB_OUTPUT
+          git diff --quiet bridge/go.mod bridge/go.sum src/parser/mihomo_schemes.h src/parser/param_compat.h include/httplib.h include/nlohmann/json.hpp include/inja.hpp include/jpcre2.hpp include/quickjspp.hpp || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: Commit and push generated files
         if: steps.check_changes.outputs.changed == 'true' && github.event_name != 'pull_request'
@@ -100,8 +126,8 @@ jobs:
           
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add bridge/go.mod bridge/go.sum src/parser/mihomo_schemes.h src/parser/param_compat.h
-          git commit -m "chore: update auto-generated files from build [skip ci]"
+          git add bridge/go.mod bridge/go.sum src/parser/mihomo_schemes.h src/parser/param_compat.h include/httplib.h include/nlohmann/json.hpp include/inja.hpp include/jpcre2.hpp include/quickjspp.hpp
+          git commit -m "chore: update auto-generated files and header libraries from build [skip ci]"
           
           # Push to the current branch explicitly
           git push origin HEAD:$BRANCH_NAME
