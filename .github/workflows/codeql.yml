@@ -189,6 +189,8 @@ jobs:
         languages: ${{ matrix.language }}
         build-mode: ${{ matrix.build-mode }}
         queries: security-and-quality
+        # Disable trap caching to avoid "No such file or directory" error
+        trap-caching: false
 
     - name: Build (manual)
       if: matrix.language == 'c-cpp'
