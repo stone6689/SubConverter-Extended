@@ -33,6 +33,9 @@
 
 **核心定位转变**：
 SubConverter-Extended 不再充当客户端和机场之间的"中转站"，而是成为独立的**"配置融合器"**——只对客户端服务，不连接机场订阅服务器。同时基于 Mihomo 内核源码，在编译时自动跟进协议支持。  
+
+<img width="723" height="447" alt="22" src="https://github.com/user-attachments/assets/a061a132-89fc-497c-9b93-6f6648ab1d4d" />
+
 > [!WARNING]
 > SubConverter-Extended 不再支持 Clash 以外的客户端。  
 
@@ -97,8 +100,6 @@ subconverter 对新节点格式的支持完全取决于维护者的积极性。�
 #### 1. Proxy-Provider 模式 🛡️
 
 **使用 Mihomo 的 Proxy-Provider 机制**  
-
-<img width="723" height="381" alt="22" src="https://github.com/user-attachments/assets/a349422e-b5ab-4240-96ea-d8eae1f283b5" />
 
 订阅链接**不再下载解析**，而是生成客户端可直接使用的配置，交由用户客户端的 Mihomo 内核自行拉取订阅：
 
