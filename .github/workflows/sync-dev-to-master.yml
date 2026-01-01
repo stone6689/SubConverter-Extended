@@ -22,7 +22,8 @@ jobs:
       - name: Merge Dev into Master
         run: |
           echo "Merging dev into master..."
-          git merge origin/dev --no-commit --no-ff
+          # Attempt merge; if it fails (conflicts), continue execution to resolve them
+          git merge origin/dev --no-commit --no-ff || true
           
           echo "Restoring master README..."
           # Restore README.md from HEAD (master) state, discarding changes from dev
