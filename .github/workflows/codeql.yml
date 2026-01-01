@@ -77,9 +77,11 @@ jobs:
       if: matrix.language == 'c-cpp'
       run: |
         cd bridge
-        # Update dependencies (go.mod already exists in repo)
-        go get -u all || true
-        go mod tidy || true
+        # Ensure dependencies are downloaded (for script to find mihomo source)
+        go mod download
+        # Set GOMODCACHE for the script to find mihomo source
+        export GOMODCACHE=$(go env GOMODCACHE)
+        echo "GOMODCACHE=$GOMODCACHE"
         # Generate header files
         go run ../scripts/generate_schemes.go mihomo_schemes.h
         go run ../scripts/generate_param_compat.go -o param_compat.h
