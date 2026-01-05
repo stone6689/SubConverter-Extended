@@ -143,16 +143,18 @@ FROM alpine:latest
 RUN apk add --no-cache \
     libstdc++ pcre2 libcurl yaml-cpp ca-certificates binutils
 
-COPY --from=builder /src/subconverter /usr/bin/
+COPY --from=builder /src/subconverter /usr/bin/subconverter
 COPY --from=builder /src/base /base/
 
 # Strip 移除调试符号，显著减少二进制体积
+# 显式设置可执行权限，确保容器能正常启动
 RUN strip /usr/bin/subconverter && \
+    chmod +x /usr/bin/subconverter && \
     apk del binutils
 
 ENV TZ=Africa/Abidjan
 RUN ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 WORKDIR /base
-CMD ["subconverter"]
+CMD ["/usr/bin/subconverter"]
 EXPOSE 25500/tcp
