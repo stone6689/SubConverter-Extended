@@ -30,21 +30,21 @@ COPY scripts/ ../scripts/
 RUN go run ../scripts/generate_schemes.go mihomo_schemes.h
 RUN go run ../scripts/generate_param_compat.go -o param_compat.h
 
-# Build static library (enable CGO for musl)
+# Build shared library (c-shared mode for musl compatibility)
 # 关键修改：
-# 1. Alpine 的 gcc 已经是 musl 工具链，无需显式指定 CC
-# 2. 使用 -trimpath 减少二进制体积（安全的瘦身方式）
-# 3. 禁止 -ldflags="-s -w"，保留完整符号表
-RUN echo "==> Building for $TARGETARCH with Alpine musl toolchain" && \
+# 1. 使用 c-shared 模式避免 musl 环境下 Go runtime 初始化问题
+# 2. musl libc 不向构造函数传递 argc/argv，c-archive 模式会导致 Segfault
+# 3. c-shared 模式下 Go runtime 边界清晰，初始化更稳定
+RUN echo "==> Building for $TARGETARCH with c-shared mode (musl compatible)" && \
     CGO_ENABLED=1 \
     go build \
     -trimpath \
-    -buildmode=c-archive \
-    -o libmihomo.a \
+    -buildmode=c-shared \
+    -o libmihomo.so \
     .
 
 # Verify build output
-RUN ls -lh libmihomo.a libmihomo.h
+RUN ls -lh libmihomo.so libmihomo.h
 
 # ========== C++ BUILD STAGE ==========
 # 全链路 musl 化：使用 Alpine 编译
@@ -94,8 +94,8 @@ RUN set -xe && \
     cmake -DCMAKE_CXX_STANDARD=11 . && \
     make install -j ${THREADS}
 
-# Copy Go library and module files from go-builder stage
-COPY --from=go-builder /build/bridge/libmihomo.a /usr/lib/
+# Copy Go shared library and module files from go-builder stage
+COPY --from=go-builder /build/bridge/libmihomo.so /usr/lib/
 COPY --from=go-builder /build/bridge/libmihomo.h /usr/include/
 COPY --from=go-builder /build/bridge/go.mod /src/bridge/go.mod
 COPY --from=go-builder /build/bridge/go.sum /src/bridge/go.sum
@@ -124,7 +124,7 @@ RUN set -xe && \
     [ -n "${SHA}" ] && sed -i "s/#define BUILD_ID \"\"/#define BUILD_ID \"${SHA}\"/ " src/version.h || true && \
     [ -n "${VERSION}" ] && sed -i "s/#define VERSION \"dev\"/#define VERSION \"${VERSION}\"/" src/version.h || true && \
     mkdir -p bridge && \
-    cp /usr/lib/libmihomo.a bridge/ && \
+    cp /usr/lib/libmihomo.so bridge/ && \
     cp /usr/include/libmihomo.h bridge/ && \
     export PATH="/usr/lib/ccache:$PATH" && \
     export CCACHE_DIR=/tmp/ccache && \
@@ -147,9 +147,10 @@ RUN apk add --no-cache \
 
 COPY --from=builder /src/subconverter /usr/bin/subconverter
 COPY --from=builder /src/base /base/
+COPY --from=builder /usr/lib/libmihomo.so /usr/lib/
 
-# 确保二进制可执行
-RUN chmod +x /usr/bin/subconverter
+# 确保二进制和库可执行
+RUN chmod +x /usr/bin/subconverter && chmod +x /usr/lib/libmihomo.so
 
 ENV TZ=Africa/Abidjan
 RUN ln -sf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
