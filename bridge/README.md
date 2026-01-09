@@ -7,7 +7,7 @@
 ### 新增文件
 
 | 文件 | 用途 |
-|------|------|
+| ------ | ------ |
 | `bridge/converter.go` | Go 包装函数（调用 mihomo） |
 | `bridge/go.mod` | Go 依赖管理 |
 | `bridge/build.sh` | 本地编译脚本 |
@@ -17,7 +17,7 @@
 ### 修改文件
 
 | 文件 | 修改内容 |
-|------|----------|
+| ------ | ---------- |
 | `CMakeLists.txt` | 链接 Go 静态库 |
 | `Dockerfile` | Alpine 版，添加 Go 编译阶段 |
 | `Dockerfile.debian` | Debian 版，用于 glibc 二进制 |
