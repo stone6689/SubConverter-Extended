@@ -4,7 +4,7 @@ FROM golang:latest AS go-builder
 
 ARG TARGETARCH
 ARG TARGETVARIANT
-ARG MIHOMO_REF="latest"
+ARG MIHOMO_REF="Meta"
 ARG MIHOMO_CACHE_BUST=1
 
 WORKDIR /build/bridge

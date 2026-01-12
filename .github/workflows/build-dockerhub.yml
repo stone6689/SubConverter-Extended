@@ -130,7 +130,7 @@ jobs:
             SHA=${{ needs.prepare.outputs.sha_short }}
             VERSION=${{ needs.prepare.outputs.version }}
             BUILD_DATE=${{ needs.prepare.outputs.build_date }}
-            MIHOMO_REF=latest
+            MIHOMO_REF=Meta
             MIHOMO_CACHE_BUST=${{ github.run_id }}
           cache-from: type=gha,scope=subconverter-alpine
           cache-to: type=gha,mode=max,scope=subconverter-alpine
@@ -258,7 +258,7 @@ jobs:
             SHA=${{ needs.prepare.outputs.sha_short }}
             VERSION=${{ needs.prepare.outputs.version }}
             BUILD_DATE=${{ needs.prepare.outputs.build_date }}
-            MIHOMO_REF=latest
+            MIHOMO_REF=Meta
             MIHOMO_CACHE_BUST=${{ github.run_id }}
           cache-from: type=gha,scope=subconverter-alpine
           cache-to: type=gha,mode=max,scope=subconverter-alpine
@@ -302,7 +302,7 @@ jobs:
             SHA=${{ needs.prepare.outputs.sha_short }}
             VERSION=${{ needs.prepare.outputs.version }}
             BUILD_DATE=${{ needs.prepare.outputs.build_date }}
-            MIHOMO_REF=latest
+            MIHOMO_REF=Meta
             MIHOMO_CACHE_BUST=${{ github.run_id }}
           cache-from: type=gha,scope=subconverter-alpine-arm64
           cache-to: type=gha,mode=max,scope=subconverter-alpine-arm64
@@ -381,7 +381,7 @@ jobs:
             SHA=${{ needs.prepare.outputs.sha_short }}
             VERSION=${{ needs.prepare.outputs.version }}
             BUILD_DATE=${{ needs.prepare.outputs.build_date }}
-            MIHOMO_REF=latest
+            MIHOMO_REF=Meta
             MIHOMO_CACHE_BUST=${{ github.run_id }}
           cache-from: type=gha,scope=subconverter-alpine-arm64
           cache-to: type=gha,mode=max,scope=subconverter-alpine-arm64
