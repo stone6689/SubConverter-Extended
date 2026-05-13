@@ -1842,7 +1842,8 @@ std::string getProfile(RESPONSE_CALLBACK_ARGS) {
   string_array profiles = split(name, "|");
   if (token.empty() || profiles.empty()) {
     *status_code = 403;
-    return "Forbidden";
+    return "Forbidden: missing profile name or access token.\n"
+           "禁止访问：缺少配置名称或访问令牌。";
   }
   std::string profile_content;
   name = profiles[0];
