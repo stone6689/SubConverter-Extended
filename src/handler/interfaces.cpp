@@ -1034,7 +1034,14 @@ std::string subconverter(RESPONSE_CALLBACK_ARGS) {
               LOG_LEVEL_WARNING);
         else {
           *status_code = 400;
-          return "The following link doesn't contain any valid node info: " + x;
+          return "Invalid request: this link does not contain any supported "
+                 "proxy nodes.\n"
+                 "无效请求：该链接不包含任何受支持的代理节点。\n"
+                 "Please check whether the link is reachable and the node URI "
+                 "format is supported.\n"
+                 "请检查链接是否可访问，以及节点 URI 格式是否受支持。\n"
+                 "Link / 链接: " +
+                 x;
         }
       }
       groupID--;
@@ -1686,7 +1693,14 @@ std::string surgeConfToClash(RESPONSE_CALLBACK_ARGS) {
                  LOG_LEVEL_WARNING);
       else {
         *status_code = 400;
-        return "The following link doesn't contain any valid node info: " + x;
+        return "Invalid request: this link does not contain any supported "
+               "proxy nodes.\n"
+               "无效请求：该链接不包含任何受支持的代理节点。\n"
+               "Please check whether the link is reachable and the node URI "
+               "format is supported.\n"
+               "请检查链接是否可访问，以及节点 URI 格式是否受支持。\n"
+               "Link / 链接: " +
+               x;
       }
     }
   }
