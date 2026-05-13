@@ -151,8 +151,11 @@ static int process_request(WebServer *server, Request &request, Response &respon
             }
             catch(std::exception &e)
             {
-                return_data = "Internal server error while processing request path '" + request.url + "' with arguments '" + joinArguments(request.argument) + "'!";
-                return_data += "\n  exception: ";
+                return_data = "Internal server error while processing request.\n"
+                              "处理请求时发生内部服务器错误。\n"
+                              "Path / 路径: " + request.url + "\n"
+                              "Arguments / 参数: " + joinArguments(request.argument);
+                return_data += "\n  Exception / 异常: ";
                 return_data += type(e);
                 return_data += "\n  what(): ";
                 return_data += e.what();

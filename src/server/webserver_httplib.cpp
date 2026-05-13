@@ -195,9 +195,11 @@ int WebServer::start_web_server_multi(listener_args *args) {
       res.set_content(to_string(err), "text/plain");
     } catch (const std::exception &ex) {
       std::string return_data =
-          "Internal server error while processing request '" + req.target +
-          "'!\n";
-      return_data += "\n  exception: ";
+          "Internal server error while processing request.\n"
+          "处理请求时发生内部服务器错误。\n"
+          "Request / 请求: " +
+          req.target + "\n";
+      return_data += "\n  Exception / 异常: ";
       return_data += type(ex);
       return_data += "\n  what(): ";
       return_data += ex.what();
