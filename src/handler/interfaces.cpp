@@ -1870,7 +1870,10 @@ std::string getProfile(RESPONSE_CALLBACK_ARGS) {
     writeLog(0, "Load profile failed! Reason: " + ini.get_last_error(),
              LOG_LEVEL_ERROR);
     *status_code = 500;
-    return "Broken profile!";
+    return "Invalid profile: failed to parse profile content.\n"
+           "无效配置：profile 内容解析失败。\n"
+           "Reason / 原因: " +
+           ini.get_last_error();
   }
   // std::cerr<<"Trying to parse profile '" + name + "'.\n";
   writeLog(0, "Trying to parse profile '" + name + "'.", LOG_LEVEL_INFO);
