@@ -726,7 +726,11 @@ std::string subconverter(RESPONSE_CALLBACK_ARGS) {
   if ((argUrl.empty() && !(!global.insertUrls.empty() && argEnableInsert)) ||
       argTarget.empty()) {
     *status_code = 400;
-    return "Invalid request!";
+    return "Invalid request: missing required target or url parameter.\n"
+           "无效请求：缺少必需的 target 或 url 参数。\n"
+           "Please provide target and url; url may be omitted only when "
+           "configured insert nodes are enabled.\n"
+           "请提供 target 和 url；只有启用已配置的插入节点时才能省略 url。";
   }
 
   /// load request arguments as template variables
