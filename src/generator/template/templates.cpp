@@ -19,6 +19,8 @@
 // 在 ruleconvert.cpp 中定义的全局规则类型白名单
 extern string_array ClashRuleTypes;
 
+static thread_local FetchContext current_template_fetch_context =
+    FetchContext::TrustedConfig;
 
 namespace inja
 {
@@ -78,12 +80,29 @@ std::string template_webGet(inja::Arguments &args)
 {
     std::string data = args.at(0)->get<std::string>(), proxy = parseProxy(global.proxyConfig);
     writeLog(0, "Template called fetch with url '" + data + "'.", LOG_LEVEL_INFO);
-    return webGet(data, proxy, global.cacheConfig);
+    return webGet(data, proxy, global.cacheConfig, nullptr, nullptr,
+                  current_template_fetch_context);
 }
 #endif // NO_WEBGET
 
-int render_template(const std::string &content, const template_args &vars, std::string &output, const std::string &include_scope)
+int render_template(const std::string &content, const template_args &vars,
+                    std::string &output, const std::string &include_scope,
+                    FetchContext context)
 {
+    struct TemplateFetchContextGuard
+    {
+        FetchContext previous;
+        explicit TemplateFetchContextGuard(FetchContext context)
+            : previous(current_template_fetch_context)
+        {
+            current_template_fetch_context = context;
+        }
+        ~TemplateFetchContextGuard()
+        {
+            current_template_fetch_context = previous;
+        }
+    } guard(context);
+
     std::string absolute_scope;
     try
     {
